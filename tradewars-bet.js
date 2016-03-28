@@ -24,6 +24,10 @@ if (Meteor.isClient) {
 
 		userInfo: function () {
 			return Meteor.user().profile.groupID;
+		},
+
+		uID: function () {
+			return Meteor.userId();
 		}
 	});
 
@@ -37,6 +41,11 @@ if (Meteor.isClient) {
 
 	});
 
+	Template.trade.helpers({
+		otherUsers: function () {
+			return Meteor.users.find({_id: {$ne: Meteor.userId()}}, {_id: 1});
+		}
+	});
 	// Template.userInfo.helpers({
 	// 	groupID: function () {
 	// 		// console.log(Meteor.user().groupID);

@@ -8,15 +8,35 @@
 	{{> loginButtons}}
 
 	{{#if currentUser}}
-		Group: {{userInfo}}
-		{{> stockInfo}}	
+		<p>
+			Group: {{userInfo}}
+		</p>
+		<p>
+			User ID: {{uID}}
+		</p>
+		<p>
+			{{> stockInfo}}	
+		</p>
+		<p>
+			{{> trade}}
+		</p>
 	{{/if}}
 </body>
 
+<template name = "trade">
+	<form class = "trade">
+		Other Users: 
+		<select>
+			{{#each otherUsers}}
+				<option value="{{_id}}">{{_id}}</option>
+			{{/each}}
+		</select>
+	</form>
+</template>
 
 <template name = "stockInfo">
 	<!-- {{prices}} -->
-	<table>
+	<table border = "1" padding = "10px">
 	<tr> 
 		<td>Resource</td>
 		<td>In Stock</td>
@@ -30,10 +50,6 @@
 		</tr>
 		{{/each}}
 	</table>
-</template>
-
-<template name = "userInfo">
-	{{groupID}}
 </template>
 
 <template name="hello">
