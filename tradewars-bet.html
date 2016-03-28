@@ -1,0 +1,42 @@
+<head>
+  <title>Trade Wars - alpha</title>
+</head>
+
+<body>
+	<h1>Welcome to Meteor!</h1>
+	{{> hello}}
+	{{> loginButtons}}
+
+	{{#if currentUser}}
+		Group: {{userInfo}}
+		{{> stockInfo}}	
+	{{/if}}
+</body>
+
+
+<template name = "stockInfo">
+	<!-- {{prices}} -->
+	<table>
+	<tr> 
+		<td>Resource</td>
+		<td>In Stock</td>
+		<td>Price</td>
+	</tr>
+		{{#each resources}}
+		<tr>
+			<td>{{name}}</td>
+			<td>{{stock}}</td>
+			<td>{{price}}</td>
+		</tr>
+		{{/each}}
+	</table>
+</template>
+
+<template name = "userInfo">
+	{{groupID}}
+</template>
+
+<template name="hello">
+	<button>Click Me</button>
+	<p>You've pressed the button {{counter}} times.</p>
+</template>
