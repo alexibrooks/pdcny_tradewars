@@ -38,12 +38,22 @@ if (Meteor.isClient) {
 			return AllStocks.findOne({gID: groupID}).market;
 		}
 
-
 	});
 
 	Template.trade.helpers({
 		otherUsers: function () {
 			return Meteor.users.find({_id: {$ne: Meteor.userId()}}, {_id: 1});
+		},
+
+		givingResources: function () {
+			gr = []; 
+			m = AllStocks.findOne({gID: Meteor.user().profile.groupID}).market;
+			for (a in m){
+				if (m[a]["stock"] > 0){
+					gr.push(m[a]);
+				}
+			}
+			return gr;
 		}
 	});
 	// Template.userInfo.helpers({

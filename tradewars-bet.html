@@ -26,11 +26,31 @@
 <template name = "trade">
 	<form class = "trade">
 		Other Users: 
-		<select>
+		<select name = "Recipient">
 			{{#each otherUsers}}
-				<option value="{{_id}}">{{_id}}</option>
+				<option value="{{_id}}">{{_id}}</option> 
+			{{/each}}
+		</select><br />
+
+		What do you want to give?
+		<select name = "Giving-Resource">
+			{{#each givingResources}}
+				<option value="{{name}}">{{name}}: {{stock}}</option>
 			{{/each}}
 		</select>
+		And how much?
+		<input type="number" name="giveAmount" /><br />
+
+		What do you want to receive?
+		<select name = "Taking-Resource">
+			{{#each givingResources}}
+				<option value="{{name}}">{{name}}: {{stock}}</option> 
+			{{/each}}
+		</select>
+		And how much?
+		<input type="number" name="requestAmount" /><br />
+
+		<input type = "submit" />
 	</form>
 </template>
 
