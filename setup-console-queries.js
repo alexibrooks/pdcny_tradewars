@@ -1,11 +1,11 @@
 Spammy Queries
 
-us = ["Sit3k7DZdPQs24shx", "QsgMNhnLDPZPRSyAh", "CEiRrYbFaECEzXdTQ", "4ELpfrYfwex6DoEfD"]
-for (u in us){
-	db.users.update({"_id": us[u]}, {$set: {"profile.alerts": []}})
-}
+// us = ["Sit3k7DZdPQs24shx", "QsgMNhnLDPZPRSyAh", "CEiRrYbFaECEzXdTQ", "4ELpfrYfwex6DoEfD"]
+// for (u in us){
+// 	db.users.update({"_id": us[u]}, {$set: {"profile.alerts": []}})
+// }
 
-db.users.update({}, {$set: {"profile.alerts": []}});
+// db.users.update({}, {$set: {"profile.alerts": []}});
 
 resources = ["a", "b", "c", "d"]
 groupIDs = ["g1", "g2", "g3", "g4"];
@@ -22,7 +22,7 @@ for (g in groupIDs){
 	}
 }
 
-db.AllStocks.find({})
+// db.AllStocks.find({})
 
-while(All)
+// while(All)
 
