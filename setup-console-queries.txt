@@ -1,4 +1,4 @@
-Spammy Queries
+//Spammy Queries
 
 // us = ["Sit3k7DZdPQs24shx", "QsgMNhnLDPZPRSyAh", "CEiRrYbFaECEzXdTQ", "4ELpfrYfwex6DoEfD"]
 // for (u in us){
