@@ -13,7 +13,7 @@ for (g in groupIDs){
 	print("adding for ", groupIDs[g]);
 	for (r in resources){
 		print("adding ", resources[r]);
-		AllStocks.insert({
+		db.stocks.insert({
 			"gID": groupIDs[g],
 			"item": resources[r],
 			"price": 150,
