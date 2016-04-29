@@ -10,10 +10,11 @@
 	{{/if}}
 	
 	<h1>Welcome to Lead Caravan!</h1>
-	{{> hello}}
+	
 	{{> loginButtons}}
 
 	{{#if currentUser}}
+		{{> hello}}
 		<p>
 			Group: {{userInfo}}
 		</p>

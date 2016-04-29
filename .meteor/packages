@@ -20,3 +20,4 @@ autopublish             # Publish all data to the clients (for prototyping)
 accounts-ui
 accounts-password
 check
+alanning:roles
