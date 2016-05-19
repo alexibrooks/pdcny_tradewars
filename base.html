@@ -1,0 +1,167 @@
+<head>
+  <title>Lead Caravan - alpha</title>
+</head>
+
+<body>
+</body>
+
+<template name="Home">
+	{{#if currentUser}}
+		{{>alerts}}  
+
+		{{>requests}}
+	{{/if}}
+	
+	<h1>Lead Caravan</h1>
+	{{> hello}}
+	{{> loginButtons}}
+	<!-- {{> atForm}} -->
+	<br />
+	<br />
+
+	{{#if currentUser}}
+		{{>baseDash}}
+	{{/if}}
+
+</template>
+
+<template name = "userDash">
+	{{#if currentUser}}
+		{{> userInfo}}
+		<p>
+			{{> stockInfo}}	
+		</p>
+		<p>
+			{{> trade}}
+		</p>
+	{{/if}}
+</template>
+
+<template name = "adminDash">
+	{{#if currentUser}}
+		{{> userInfo}}
+		<p>
+			{{> stockInfo}}	
+		</p>
+		<p>
+			{{> trade}}
+		</p>
+	{{/if}}
+</template>
+
+
+<template name = "alerts">
+	{{#each allAlerts}}
+		{{text}}
+		<br />
+	{{/each}}
+	<form class="clear-alerts">
+		<input type="submit" value = "Clear Alerts"/>
+	</form>
+</template>
+
+<template name = "requests">
+	{{#each allRequests}}
+		{{requester}} has asked you for {{reqAmt}} of {{reqRes}}, in exchange for {{recvAmt}} of {{recvRes}}.
+		<form class="{{reqNo}}">
+			<input type="submit" value="Accept" id = "accept" />
+			<input type="submit" value="Reject" id = "reject" />
+		</form>
+	{{/each}}
+</template>
+
+<template name="userInfo">
+	<p>
+		Group: {{groupID}}
+	</p>
+	<p>
+		User ID: {{userID}}
+	</p>
+</template>
+
+<template name = "trade">
+	<form class = "trade">
+		Other Users: 
+		<select name = "Recipient">
+			{{#each otherUsers}}
+				<option value="{{_id}}">{{_id}}</option> 
+			{{/each}}
+		</select><br />
+
+		What do you want to give?
+		<select name = "GivingResource">
+			{{#each givingResources}}
+				<option value="{{item}}">{{item}}: {{amount}}</option>
+			{{/each}}
+		</select>
+		And how much?
+		<input type="number" name="giveAmount" /><br />
+
+		What do you want to receive?
+		<select name = "TakingResource">
+			{{#each allResources}}
+				<option value="{{item}}">{{item}}</option> 
+			{{/each}}
+		</select>
+		And how much?
+		<input type="number" name="requestAmount" /><br />
+
+		<input type = "submit" />
+	</form>
+</template>
+
+<template name = "stockInfo">
+	<!-- {{prices}} -->
+	<table border = "1" padding = "10px">
+	<tr> 
+		<td>Resource</td>
+		<td>In Stock</td>
+		<td>Price</td>
+	</tr>
+		{{#each resources}}
+		<tr>
+			<td>{{item}}</td>
+			<td>{{amount}}</td>
+			<td>{{price}}</td>
+		</tr>
+		{{/each}}
+	</table>
+</template>
+
+<template name="hello">
+	<!-- <button>Click Me</button>
+	<p>You've pressed the button {{counter}} times.</p> -->
+	{{#unless currentUser}}
+	<p>Sign up to see things!</p>
+	{{/unless}}
+
+</template>
+
+
+
+
+<template name="baseDash">
+  <button class="host">
+    Host a new Game
+  </button>
+  <br />
+  <form class = "gameChoice">
+    <input type="text" placeholder="1729" name="gameCode" />
+    <input type="submit" value = "Join a game" />
+  </form>
+
+  <h3> Admin </h3>
+  <p>
+  {{#each adminGames}}
+    <a href="/games/{{code}}">{{code}}</a>
+  {{/each}}
+  </p>
+  
+  <h3> Play </h3>
+  <p>
+  {{#each playingGames}}
+    <a href="/games/{{code}}">{{code}}</a>
+  {{/each}}
+  </p>
+
+</template>
