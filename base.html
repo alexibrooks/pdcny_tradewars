@@ -3,18 +3,58 @@
 </head>
 
 <body>
+<!-- {{#unless currentUser}}
+	{{> registerForm}}
+	{{> loginForm}}
+{{/unless}}
+{{#if currentUser}}
+	{{> logOut}}
+{{/if}} -->
+
+	<h1>Lead Caravan</h1>
+	<div class="row" >
+		<div class="col-md-4">	
+			{{> hello}}
+		</div>
+		<div class="col-md-3">{{> atForm}}</div>
+		<div class="col-md-5"></div>
+	</div>
+
+
+	{{#if currentUser}}
+		<p align="right">	<button class = "logOut">Sign Out</button> </p>
+	{{/if}}
+
 </body>
 
-<template name="Home">
-	{{#if currentUser}}
-		{{>alerts}}  
+<!-- <template name = "registerForm">
+    <form class="register">
+	    <p>Email: <input type="email" name="email"></p>
+	    <p>Username: <input type="text" name="username"></p>
+	    <p>Full Name: <input type="text" name="full-name"></p>
+	    <p>Password: <input type="password" name="password"></p>
+	    <p><input type="submit" value="Register"></p>
+    </form>
+</template>
 
-		{{>requests}}
-	{{/if}}
+<template name = "loginForm">
+    <form class="login">
+	    <p>Username: <input type="email" name="email"></p>
+	    <p>Password: <input type="password" name="password"></p>
+	    <p><input type="submit" value="Login"></p>
+    </form>
+</template>
+
+<template name = "logOut">
+    <button class="logout">Log Out</button>
+</template>
+
+ -->
+<template name="Home">
+
 	
-	<h1>Lead Caravan</h1>
-	{{> hello}}
-	{{> loginButtons}}
+	<!-- {{> loginButtons}} -->
+
 	<!-- {{> atForm}} -->
 	<br />
 	<br />
@@ -25,13 +65,13 @@
 
 </template>
 
+
 <template name = "userDash">
 	{{#if currentUser}}
-<<<<<<< HEAD:base.html
+		{{>alertsTemp}}  
+		{{>requestsTemp}}
+
 		{{> userInfo}}
-=======
-		{{> hello}}
->>>>>>> origin/master:tradewars-bet.html
 		<p>
 			{{> stockInfo}}	
 		</p>
@@ -43,20 +83,21 @@
 
 <template name = "adminDash">
 	{{#if currentUser}}
-		{{> userInfo}}
+		{{>alertsTemp}}  
+		{{>requestsTemp}}
+
+		<!-- {{> userInfo}} -->
 		<p>
-			{{> stockInfo}}	
-		</p>
-		<p>
-			{{> trade}}
+			{{> stockInfo}}
 		</p>
 	{{/if}}
 </template>
 
 
-<template name = "alerts">
+<template name = "alertsTemp">
 	{{#each allAlerts}}
-		{{text}}
+		<!-- {{contents}} -->
+		{{contents.text}}
 		<br />
 	{{/each}}
 	<form class="clear-alerts">
@@ -64,10 +105,10 @@
 	</form>
 </template>
 
-<template name = "requests">
+<template name = "requestsTemp">
 	{{#each allRequests}}
-		{{requester}} has asked you for {{reqAmt}} of {{reqRes}}, in exchange for {{recvAmt}} of {{recvRes}}.
-		<form class="{{reqNo}}">
+		{{contents.requester.username}} has asked you for {{contents.reqAmt}} of {{contents.reqRes}}, in exchange for {{contents.recvAmt}} of {{contents.recvRes}}.
+		<form class="{{_id}}">
 			<input type="submit" value="Accept" id = "accept" />
 			<input type="submit" value="Reject" id = "reject" />
 		</form>
@@ -79,7 +120,7 @@
 		Group: {{groupID}}
 	</p>
 	<p>
-		User ID: {{userID}}
+		Username: {{userID}}
 	</p>
 </template>
 
@@ -88,7 +129,7 @@
 		Other Users: 
 		<select name = "Recipient">
 			{{#each otherUsers}}
-				<option value="{{_id}}">{{_id}}</option> 
+				<option value="{{_id}}">{{username}}</option> 
 			{{/each}}
 		</select><br />
 
@@ -121,12 +162,14 @@
 		<td>Resource</td>
 		<td>In Stock</td>
 		<td>Price</td>
+		<td>Group</td>
 	</tr>
 		{{#each resources}}
 		<tr>
 			<td>{{item}}</td>
 			<td>{{amount}}</td>
 			<td>{{price}}</td>
+			<td>{{gID}}</td>
 		</tr>
 		{{/each}}
 	</table>
@@ -142,13 +185,11 @@
 </template>
 
 
-
-
 <template name="baseDash">
   <button class="host">
     Host a new Game
   </button>
-  <br />
+  <br /><br />
   <form class = "gameChoice">
     <input type="text" placeholder="1729" name="gameCode" />
     <input type="submit" value = "Join a game" />
@@ -157,14 +198,14 @@
   <h3> Admin </h3>
   <p>
   {{#each adminGames}}
-    <a href="/games/{{code}}">{{code}}</a>
+    <a href="/games/{{gameCode}}">{{gameCode}}</a>
   {{/each}}
   </p>
   
   <h3> Play </h3>
   <p>
   {{#each playingGames}}
-    <a href="/games/{{code}}">{{code}}</a>
+    <a href="/games/{{gameCode}}">{{gameCode}}</a>
   {{/each}}
   </p>
 

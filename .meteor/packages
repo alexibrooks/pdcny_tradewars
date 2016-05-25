@@ -20,7 +20,7 @@ check
 accounts-google
 standard-minifier-css
 standard-minifier-js
-bootstrap
 iron:router
 accounts-password
-accounts-ui
+useraccounts:bootstrap
+twbs:bootstrap

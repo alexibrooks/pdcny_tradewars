@@ -1,146 +1,121 @@
-// collection of everybody's markets
-// each document is groupID, price of wood, graphite, and so on
-// as well as 
+// RunningGames = Mongo.Collection("games");
+// AllStocks = Mongo.Collection("stocks");
+// Alerts = Mongo.Collection("alerts")
+// import { RunningGames } from './server.js';
+// import { AllStocks } from './server.js';
+// import { Alerts } from './server.js';
 
-// collection of Users has groupID information as well
-
-// collection of all the groups' stocks
-
-// import { Meteor } from 'meteor/meteor';
-// import { Template } from 'meteor/templating';
-// import { Router } from 'meteor/iron:router';
-
-// import { RunningGames } from './server/main.js';
-// import { AllStocks } from './server/main.js';
-
-groupIDs = ["g1", "g2", "g3", "g4"];
-// resources = ["a", "b", "c", "d"]
-
-// RunningGames = new Mongo.Collection("games");
-// AllStocks = new Mongo.Collection("stocks");
-
-// Router.route('/', function() {
-// 	this.render('Home');
-// });
-
-// Router.route('/games/:gameCode', function() {
-// 	// console.log(this.params.gameCode);
-// 	var gameCode = parseInt(this.params.gameCode);
-// 	// console.log(gameCode);
-// 	//check presence of user in game
-// 		//if not, then redirect back to home, with alert "Not in game"
-// 	role = "none";
-// 	if (RunningGames.findOne({$and: [{"accessCode": gameCode}, {"admin": Meteor.userId()}] }) != undefined) {
-// 		// console.log("found admin");
-// 		role = "adminDash";
-// 	}
-// 	else if (RunningGames.findOne({$and: [{"accessCode": gameCode}, {"users": Meteor.userId()}]}) != undefined) {
-// 		// console.log("found admin");
-// 		role = "userDash";
-// 	}
-// 	else {
-// 		// console.log("not found");
-// 		Session.set("GameCode", 0);
-// 		// alert("Not in that game!");
-// 		// role = ""
-// 		// Router.go("/");
-// 	}
-// 	if (role == "none"){
-// 		alert("Not in this game");
-// 		Router.go("/");
-// 	}
-// 	else{
-// 		this.render(role, {
-// 			data: {
-// 				gameCode: this.gameCode
-// 			}
-// 		});
-// 		Session.set("GameCode", gameCode);
-// 	}
-// });
 
 if (Meteor.isClient) {
+	// Template.registerForm.event
+	Template.body.events ({
+		'click .logOut': function () {
+			// console.log("logging out?");
+			AccountsTemplates.logout();
+			Router.go('/');
+		}
+	});
+
 	Template.userInfo.helpers ({
 		groupID: function () {
-			Meteor.call("getGameDocument", Session.get("GameCode"), Meteor.userId(), function (error, result) {
-				if (error) {
-					return "Error";
-				}
-				else {
-					return result.users.group;
-				}
-			})
+			// grp = "None";
+			// Meteor.call("findUserGroup", Meteor.userId(), Session.get("GameCode"), function (error, result) {
+			// 	if (!error) {
+			// 		// console.log(result);
+			// 		// console.log(grp);
+			// 		// grp = result;
+			// 		Session.set("GroupNo", result);
+			// 		// console.log(grp);
+			// 		// return grp;
+			// 	}
+			// });
 			// return RunningGames.findOne({$and: [{accessCode: Session.get("GameCode")}, {users.id: Meteor.userId()}]}).users.group;
+			// while (grp == "None"){
+			// 	console.log(grp);
+			
+			return Session.get("GroupNo");
 		},
 
 		userID: function () {
-			return Meteor.userId();
+			return Meteor.user().username;
 		}
 	});
 
-	Template.alerts.helpers({
+	Template.alertsTemp.helpers({
 		allAlerts: function () {
-			return Meteor.user().profile.alerts;
+			// return Meteor.user().profile.alerts;
+			// console.log("Ale");
+			// console.log(Alerts.find({$and: [{"gameCode": Session.get("GameCode")}, {"user": Meteor.userId()}, {type: "alert"}, {"contents.read": 0}]}).fetch()[0].contents.text);
+			return Alerts.find({$and: [{"gameCode": Session.get("GameCode")}, {"user": Meteor.userId()}, {type: "alert"}, {"contents.read": 0}]});
 		}
 	});
 
-	Template.alerts.events({
+	Template.alertsTemp.events({
 		'submit .clear-alerts' : function (event) {
 			event.preventDefault();
 			// console.log(Meteor.user().profile.alerts)
 			// Meteor.users.update({_id: Meteor.userId()}, {$set: {"profile.alerts": []}});
-			Meteor.call('raiseAlert', Meteor.userId(), "clearall");
+			Meteor.call('raiseAlert', Meteor.userId(), "clearall", Session.get("GameCode"));
 		}
 	});
 
-	Template.requests.helpers({
+	Template.requestsTemp.helpers({
 		allRequests: function () {
+			// console.log("reqs");
 			// if (Meteor.user().profile.requests != undefined)
 
-			return Meteor.user().profile.requests.filter(function (x) { return x["replied"] == false; });
+			// return Meteor.user().profile.requests.filter(function (x) { return x["replied"] == false; });
+			// returnReqs = [];
+			return Alerts.find({$and: [{gameCode: Session.get("GameCode")}, {user: Meteor.userId()}, {type: "request"}, {"contents.read": 0}]});
+			// Meteor.call('
 		}
 	});
 
-	Template.requests.events({
+	Template.requestsTemp.events({
 		"click input[type=submit]": function(e) {
-			reqno = $(e.target)[0].form.className;
-			reqs = Meteor.user().profile.requests;
-			request = reqs[reqno];
+			reqId = $(e.target)[0].form.className;
+			// reqs = Meteor.user().profile.requests;
+			// reqLog = Alerts.findOne({_id: reqId});
+			request = Alerts.findOne({_id: reqId}).contents;
 			acceptance = false;
 			if($(e.target).prop("id") == "accept"){
+				// console.log("accept");
 				e.preventDefault();
-				reqResStock = AllStocks.findOne({$and: [{gID: Meteor.user().profile.groupID}, {item: request["reqRes"]}]});
+				reqResStock = AllStocks.findOne({$and: [{gID: Session.get("GroupNo")}, {gameCode: Session.get("GameCode")}, {item: request["reqRes"]}]});
 				if (reqResStock == undefined){
-					Meteor.call('raiseAlert', Meteor.userId(), "Your group doesn't have the item you're trying to give! Trade fails");
+					Meteor.call("raiseAlert", Meteor.userId(), "Your group doesn't have the item you're trying to give! Trade fails", Session.get("GameCode"));
 					acceptance = false;
 				}
 				else if(reqResStock.amount < request["reqAmt"]){
-					Meteor.call('raiseAlert', Meteor.userId(), "Your group doesn't have enough of the item you're trying to give! Trade fails");
-					acceptance = false
+					Meteor.call('raiseAlert', Meteor.userId(), "Your group doesn't have enough of the item you're trying to give! Trade fails", Session.get("GameCode"));
+					acceptance = false;
 				}
 				else{
-					Meteor.call('exchangeResources', request);
-					Meteor.call('raiseAlert', Meteor.userId(), "Request completed, you have the things!");
+					Meteor.call('exchangeResources', reqId, Session.get("GameCode"));
+					Meteor.call('raiseAlert', Meteor.userId(), "Request completed, you have the things you requested for!", Session.get("GameCode"));
 					acceptance = true;
 				}
 				//***  add functions for making alerts, and send alert to requester about what happened ***//
 			}
 			else{
+				// console.log("reject");
 				e.preventDefault();
 				acceptance = false;
 				// console.log("reject", $(e.target).prop("fNo"));
 			}
 
 			if(acceptance == false){
-				Meteor.call('raiseAlert', request["requester"], "Request rejected/failed.");
+				Meteor.call('raiseAlert', request["requester"].id, "Request rejected/failed.", Session.get("GameCode"));
 				// Meteor.call('raiseAlert', Meteor.userId(), "Request rejected/failed.");
 			}
 			else {
-				Meteor.call('raiseAlert', request["requester"], "Request accepted! Woohoo");	
+				Meteor.call('raiseAlert', request["requester"].id, "Request accepted! Woohoo", Session.get("GameCode"));	
 				// Meteor.call('raiseAlert', Meteor.userId(), "Request rejected/failed.");
 			}
-			request.replied = true;
-			Meteor.users.update({_id: Meteor.userId()}, { $set: {"profile.requests": reqs} });
+			Meteor.call('readRequest', reqId);
+			
+			// request.replied = true;
+			// Meteor.users.update({_id: Meteor.userId()}, { $set: {"profile.requests": reqs} });
 
 			// Meteor.users.update({_id: Meteor.userId()}, { $set: {"profile.requests": reqs.splice(reqno, 1)} });
 		}
@@ -148,10 +123,14 @@ if (Meteor.isClient) {
 
 	Template.stockInfo.helpers ({
 		resources: function () {
-			groupID = Meteor.user().profile.groupID;
-
 			// return AllStocks.findOne({gID: groupID}).market;
-			return AllStocks.find({gID: groupID});
+			console.log("stockin");
+			if (Session.get("GroupNo") == "admin"){
+				return AllStocks.find({gameCode: Session.get("GameCode")});	
+			}
+			else if (Session.get("GroupNo") != "none"){
+				return AllStocks.find({$and: [{gID: Session.get("GroupNo")}, {gameCode: Session.get("GameCode")}]});
+			}
 		}
 
 	});
@@ -172,19 +151,26 @@ if (Meteor.isClient) {
 
 	Template.trade.helpers({
 		otherUsers: function () {
-			return Meteor.users.find({"profile.groupID": {$ne: Meteor.user().profile.groupID}}, {_id: 1});
+			// return Meteor.users.find({"profile.groupID": {$ne: Meteor.user().profile.groupID}}, {_id: 1});
+			gamePlayers = RunningGames.findOne({$and: [{gameCode: Session.get("GameCode")}, {"users.id": Meteor.userId()}]}).users;
+			others = [];
+			// console.log(users);
+			for (u in gamePlayers){
+				if (gamePlayers[u].id != Meteor.userId()) {
+					others.push(gamePlayers[u].id);
+				}
+			}
+			return Meteor.users.find({_id: {$in: others}});
 		},
 
 		givingResources: function () {
-			// gr = []; 
-			gr = AllStocks.find({$and: [{"gID": Meteor.user().profile.groupID}, {"amount": {$gt: 0}}] }, {"item": 1, "amount": 1});
-			return gr;
+			return AllStocks.find({$and: [{"gameCode": Session.get("GameCode")}, {"gID": Session.get("GroupNo")}, {"amount": {$gt: 0}}] }, {"item": 1, "amount": 1});
 		},
 
 		allResources: function () {
 			// ar = [];
 			// ar = [{"name": "a"}, {"name": "b"}, {"name": "c"}, {"name": "d"}]
-			ar = AllStocks.find({"amount": {$gt: 0}}, {"item": 1}).fetch();
+			ar = AllStocks.find({$and: [{"gameCode": Session.get("GameCode")}, {"amount": {$gt: 0}}]}, {"item": 1}).fetch();
 			distinctArray = _.uniq(ar, false, function(d) {return d.item});
 			distinctValues = _.pluck(distinctArray, 'item');
 			ar = distinctValues.map(function (x){return {"item": x}});
@@ -198,7 +184,7 @@ if (Meteor.isClient) {
 			// console.log("trast");
 			event.preventDefault();
 			var checkAvailability = function(res, amt) {
-				a = parseInt(AllStocks.find({$and: [{"gID": Meteor.user().profile.groupID}, {"item": res}, {"amount": {$gte: parseInt(amt)}}]}).fetch().length);
+				a = parseInt(AllStocks.find({$and: [{"gameCode": Session.get("GameCode")}, {"gID": Session.get("GroupNo")}, {"item": res}, {"amount": {$gte: parseInt(amt)}}]}).fetch().length);
 				// console.log(a != 0);
 				if (a > 0){
 					console.log("tru");
@@ -214,12 +200,19 @@ if (Meteor.isClient) {
 			// console.log(alrts, Meteor.user().profile.alerts);
 
 			if (checkAvailability(event.target.GivingResource.value, event.target.giveAmount.value)){
-				Meteor.call('reqTrade', event.target.Recipient.value, event.target.GivingResource.value, event.target.giveAmount.value, event.target.TakingResource.value, event.target.requestAmount.value);
+				// console.log(event.target.Recipient.value, Meteor.userId(), event.target.GivingResource.value, event.target.giveAmount.value, event.target.TakingResource.value, event.target.requestAmount.value);
+				Meteor.call('reqTrade', Session.get("GameCode"), event.target.Recipient.value, Meteor.userId(), event.target.GivingResource.value, event.target.giveAmount.value, event.target.TakingResource.value, event.target.requestAmount.value, function (error, result){
+					if (error){
+						Meteor.call('raiseAlert', Meteor.userId(), "Request sending failed due to server's fault. Find the owners of the internets and shout at them.", Session.get("GameCode"));
+					}
+					else {
+						Meteor.call('raiseAlert', Meteor.userId(), "Sent Request", Session.get("GameCode"));
+					}
+				});
 				// alrts.push("Sent Request");
-				Meteor.call('raiseAlert', Meteor.userId(), "Sent Request");
 			}
 			else{
-				Meteor.call('raiseAlert', Meteor.userId(), "Request sending failed – probably not enough resource");
+				Meteor.call('raiseAlert', Meteor.userId(), "Request sending failed – probably not enough resource", Session.get("GameCode"));
 				// alrts.push("Request sending failed – probably not enough resource");
 			}
 			// Meteor.users.update({_id: Meteor.userId()}, {$set: {"profile.alerts": alrts}});
@@ -229,12 +222,13 @@ if (Meteor.isClient) {
 
 	Template.baseDash.helpers({
 		adminGames() {
+			// console.log(RunningGames.find({'admin': Meteor.userId()}).fetch());
 			return RunningGames.find({'admin': Meteor.userId()});
 		},
 		
 		playingGames() {
 			//look for query to search in arrays in a field in a mongo db
-			return RunningGames.find({'users': Meteor.userId()});
+			return RunningGames.find({'users.id': Meteor.userId()});
 		},
 	});
 
@@ -258,10 +252,24 @@ if (Meteor.isClient) {
 		'submit .gameChoice': function(event) {
 			event.preventDefault();
 			gCode = event.target.gameCode.value;
-			if (RunningGames.findOne({'accessCode': gCode}) != undefined){
-				Meteor.call('joinGame', gCode, Meteor.userId());
-			}
-			Router.go("/games/" + gCode);
+			// game = RunningGames.findOne({'accessCode': gCode});
+			// if (game != undefined){
+			// console.log(gCode);
+			Meteor.call('joinGame', gCode, Meteor.userId(), function(err, result) {
+				if (err){
+					alert("Errorr");
+				}
+				else {
+					console.log(result);
+					if (result == "Invalid game code"){
+						alert("That game does not exist");
+					}
+					else {
+						Router.go("/games/" + gCode);
+					}
+				}
+			});
+			// }
 		}
 	});
 
