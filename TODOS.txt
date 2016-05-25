@@ -1,21 +1,20 @@
 TODOS:
 
-	add username functionality
 	make secure
-	disable user editing of profile
 
-	--- Yet to correctly retrieve all possible resources,
-	--- write backend queries to actually move resources around, and 
-	--- add functionality for raising a “confirm transfer?” dialog with the requested person.
-
-	//
-	--- all sendable people right now, are any other user. It should only be users from other groups
-
-Future todos:
 	add event logging
-
 
 
 Game Mechanics to discuss:
 	tariffs in trading
 	trading with your own market
+
+
+Done:
+	add username functionality
+	disable user editing of profile (don't need to anymore)
+	--- Yet to correctly retrieve all possible resources,
+	--- write backend queries to actually move resources around, and 
+	--- add functionality for raising a “confirm transfer?” dialog with the requested person.
+	//
+	--- all sendable people right now, are any other user. It should only be users from other groups
