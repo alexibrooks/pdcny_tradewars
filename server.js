@@ -32,14 +32,8 @@ if (Meteor.isServer) {
 		Meteor.methods({
 			findUserGroup: function (userId, gameCode) {
 				group = "none";
-				if (RunningGames.findOne({$and: [{"gameCode": gameCode}, {"users.id": userId}]}) != undefined){
-					players = RunningGames.findOne({$and: [{"gameCode": gameCode}, {"users.id": userId}]}).users;
-					for (u in players){
-						if (players[u].id == userId){
-							group = players[u].group;
-							break;
-						}
-					}
+				if (RunningGames.findOne({$and: [{"gameCode": gameCode}, {"player": userId}]}) != undefined){
+					group = RunningGames.findOne({$and: [{"gameCode": gameCode}, {"player": userId}]}).group;
 				}
 				return group;
 			},
@@ -130,8 +124,9 @@ if (Meteor.isServer) {
 				if (RunningGames.findOne({"gameCode": codeString}) == undefined){
 					RunningGames.insert({
 						"gameCode": codeString,
-						"admin": adminID,
-						"users": []
+						"player": adminID,
+						"playerName": Meteor.users.findOne({"_id": adminID}).username,
+						"group": "admin"
 					});
 					Meteor.call("setupNewGameStocks", codeString);
 				}
@@ -167,17 +162,35 @@ if (Meteor.isServer) {
 					return "Invalid game code";
 				}
 				else{
-					if (RunningGames.findOne({$and: [{"gameCode": gameCode}, {"users.id": joinerID}]}) == undefined && RunningGames.findOne({$and: [{"gameCode": gameCode}, {"admin": joinerID}]}) == undefined){
-						console.log("going to add this user");
-						RunningGames.update({"gameCode": gameCode}, {$addToSet: {"users": {"id": joinerID, "group": groupIDs[Math.floor(Math.random() * 4)]}}});
+					// if (RunningGames.findOne({$and: [{"gameCode": gameCode}, {"users.id": joinerID}]}) == undefined && RunningGames.findOne({$and: [{"gameCode": gameCode}, {"admin": joinerID}]}) == undefined){
+					// 	console.log("going to add this user");
+					// 	RunningGames.update({"gameCode": gameCode}, {$addToSet: {"users": {"id": joinerID, "group": groupIDs[Math.floor(Math.random() * 4)]}}});
+					// }
+					game = RunningGames.findOne({$and: [{"gameCode": gameCode}, {"player": joinerID}]});
+					grp = "home";
+					// role = "userDash";
+					if (game == undefined){
+						grp = groupIDs[Math.floor(Math.random() * 4)];
+						RunningGames.insert({
+							"gameCode": gameCode,
+							"player": joinerID,
+							"playerName": Meteor.users.findOne({"_id": joinerID}).username,
+							"group": grp
+						});
 					}
+					else {
+						grpNo = game.group;
+						// if (grpNo == "admin"){
+						// 	role = "adminDash";
+						// }
+					}
+					// Session.set("GameCode", gameCode);
+					// Session.set("GroupNo", grpNo);
+					// Session.set("Role", role);
+
 					return "Game joined";
 					//*** redirect to url of game
 				}
-			},
-
-			getGameDocument(code, uid) {
-				return RunningGames.findOne({$and: [{"gameCode": code}, {"users.id": uid}]});
 			}
 
 		});

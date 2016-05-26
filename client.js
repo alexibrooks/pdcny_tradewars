@@ -152,15 +152,17 @@ if (Meteor.isClient) {
 	Template.trade.helpers({
 		otherUsers: function () {
 			// return Meteor.users.find({"profile.groupID": {$ne: Meteor.user().profile.groupID}}, {_id: 1});
-			gamePlayers = RunningGames.findOne({$and: [{gameCode: Session.get("GameCode")}, {"users.id": Meteor.userId()}]}).users;
-			others = [];
-			// console.log(users);
-			for (u in gamePlayers){
-				if (gamePlayers[u].id != Meteor.userId()) {
-					others.push(gamePlayers[u].id);
-				}
-			}
-			return Meteor.users.find({_id: {$in: others}});
+			// gamePlayers = RunningGames.find({$and: [{gameCode: Session.get("GameCode")}, {"users.id": Meteor.userId()}]}).users;
+			// others = [];
+			// // console.log(users);
+			// for (u in gamePlayers){
+			// 	if (gamePlayers[u].id != Meteor.userId()) {
+			// 		others.push(gamePlayers[u].id);
+			// 	}
+			// }
+			// return Meteor.users.find({_id: {$in: others}});
+			return RunningGames.find({$and: [{gameCode: Session.get("GameCode")}, {player: {$ne: Meteor.userId()}}, {group: {$ne: "admin"}}]}, {playerName: 1});
+
 		},
 
 		givingResources: function () {
@@ -223,12 +225,11 @@ if (Meteor.isClient) {
 	Template.baseDash.helpers({
 		adminGames() {
 			// console.log(RunningGames.find({'admin': Meteor.userId()}).fetch());
-			return RunningGames.find({'admin': Meteor.userId()});
+			return RunningGames.find({$and: [{'player': Meteor.userId()}, {'group': 'admin'}]});
 		},
 		
 		playingGames() {
-			//look for query to search in arrays in a field in a mongo db
-			return RunningGames.find({'users.id': Meteor.userId()});
+			return RunningGames.find({$and: [{'player': Meteor.userId()}, {'group': {$ne: 'admin'}}]});
 		},
 	});
 

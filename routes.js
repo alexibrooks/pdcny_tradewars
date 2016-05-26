@@ -12,48 +12,40 @@ Router.route('/', function() {
 	// console.log(AllStocks.findOne());
 });
 
-Router.route('/games/:gameCode', {
-	waitOn: function () {
+Router.route('/games/:gameCode', 
+	function () {
+	// waitOn: function () {
 		setSession = function (gCode, group, role) {
 			Session.set("GameCode", gCode);
 			Session.set("GroupNo", group);
 			Session.set("Role", role);
 			// console.log("session setting");
 		}
-
 		var gameCode = parseInt(this.params.gameCode);
 		role = "none";
 		group = "none";
 		//is this user an admin
-		if (RunningGames.findOne({$and: [{"gameCode": gameCode}, {"admin": Meteor.userId()}] }) != undefined) {
-			// console.log("admin");
-			role = "adminDash";
-			group = "admin";
+		game = RunningGames.findOne({$and: [{"gameCode": gameCode}, {"player": Meteor.userId()}] });
+		if (game != undefined) {
+			group = game.group;
+			console.log(group);
+			if (group == "admin"){
+				role = "adminDash";
+			}
+			else {
+				role = "userDash";
+			}
 			setSession(gameCode, group, role);
-		}
-		//is this user a player ("user")
-		else if (RunningGames.findOne({$and: [{"gameCode": gameCode}, {"users.id": Meteor.userId()}]}) != undefined) {
-			// console.log("user");
-			role = "userDash";
-			Meteor.call('findUserGroup', Meteor.userId(), gameCode, function (err, result){
-				if (err){
-					group = "none";
-				}
-				else {
-					group = result;	
-					setSession(gameCode, group, role);
-				}
-			});
 		}
 		else {
 			// console.log("nothing found");
 			gameCode = 0;
 		}
-		this.next();
-	},
+		// this.next();
+	// },
 
 
-	action: function () {
+	// action: function () {
 		// if (Session.get("Ready") == 1){
 			if (Session.get("GameCode") == 0) {
 				// alert("Not in this game");
@@ -61,9 +53,9 @@ Router.route('/games/:gameCode', {
 			}
 			
 			else {
-				// console.log(Session.get("Role"));
+				console.log(Session.get("Role"));
 				this.render(Session.get("Role"));
 			}
 		// }
-	}
+	// }
 });
