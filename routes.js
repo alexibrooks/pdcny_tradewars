@@ -7,32 +7,28 @@ Router.route('/', function() {
 	this.render('Home');
 	Session.set("GameCode", 0);
 	Session.set("GroupNo", "home");
-	// console.log(RunningGames.findOne());
-	// console.log(Meteor.users.findOne());
-	// console.log(AllStocks.findOne());
 });
 
-Router.route('/games/:gameCode', 
-	function () {
-	// waitOn: function () {
+Router.route('/games/:gameCode', function () {
 		setSession = function (gCode, group, role) {
 			Session.set("GameCode", gCode);
 			Session.set("GroupNo", group);
 			Session.set("Role", role);
-			// console.log("session setting");
 		}
 		var gameCode = parseInt(this.params.gameCode);
 		role = "none";
 		group = "none";
-		//is this user an admin
 		game = RunningGames.findOne({$and: [{"gameCode": gameCode}, {"player": Meteor.userId()}] });
+		//does this game exist
 		if (game != undefined) {
 			group = game.group;
 			console.log(group);
 			if (group == "admin"){
+				//is this user an admin
 				role = "adminDash";
 			}
 			else {
+				//is this user a normal player
 				role = "userDash";
 			}
 			setSession(gameCode, group, role);
@@ -41,21 +37,17 @@ Router.route('/games/:gameCode',
 			// console.log("nothing found");
 			gameCode = 0;
 		}
-		// this.next();
-	// },
+		if (Session.get("GameCode") == 0) {
+			// alert("Not in this game");
+			Router.go("/");
+		}
+		
+		else {
+			// console.log(Session.get("Role"));
+			this.render(Session.get("Role"));
+			// console.log(d3.random.normal(1,10));
+			Meteor.call('updateGameJoin', Session.get("GameCode"), Meteor.userId());
 
-
-	// action: function () {
-		// if (Session.get("Ready") == 1){
-			if (Session.get("GameCode") == 0) {
-				// alert("Not in this game");
-				Router.go("/");
-			}
-			
-			else {
-				console.log(Session.get("Role"));
-				this.render(Session.get("Role"));
-			}
-		// }
-	// }
-});
+		}
+	}
+);

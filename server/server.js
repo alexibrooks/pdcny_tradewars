@@ -1,41 +1,60 @@
-RunningGames = new Mongo.Collection("games");
-AllStocks = new Mongo.Collection("stocks");
-Alerts = new Mongo.Collection("alerts")
-Events = new Mongo.Collection("eventlogs")
+// RunningGames = new Mongo.Collection("games");
+// AllStocks = new Mongo.Collection("stocks");
+// Alerts = new Mongo.Collection("alerts")
+// Events = new Mongo.Collection("eventlogs")
+
+import './d3-random.min.js'
 
 resources = ["a", "b", "c", "d"]
 groupIDs = ["g1", "g2", "g3", "g4"];
 
+gaussian = function(mean, stdev) {
+    var y2;
+    var use_last = false;
+    return function() {
+        var y1;
+        if(use_last) {
+           y1 = y2;
+           use_last = false;
+        }
+        else {
+            var x1, x2, w;
+            do {
+                 x1 = 2.0 * Math.random() - 1.0;
+                 x2 = 2.0 * Math.random() - 1.0;
+                 w  = x1 * x1 + x2 * x2;               
+            } while( w >= 1.0);
+            w = Math.sqrt((-2.0 * Math.log(w))/w);
+            y1 = x1 * w;
+            y2 = x2 * w;
+            use_last = true;
+       }
+
+       var retval = mean + stdev * y1;
+       if(retval > 0) 
+           return retval;
+       return -retval;
+   }
+}
+
 if (Meteor.isServer) {
+	date = new Date();
 	Meteor.startup(function () {
-		// code to run on server at startup
 
 		//given a list of resources, choose one at random
 		//given a dict of resources : 0, make that random resource 1000
-
+		
 		//given a dict of resources and groupID , make a document with that groupID and dict
-
-		//w
-		// for (g in groupIDs){
-		// 	console.log("adding for ", groupIDs[g]);
-		// 	for (r in resources){
-		// 		console.log("adding ", resources[r]);
-		// 		AllStocks.insert({
-		// 			"gID": groupIDs[g],
-		// 			"item": resources[r],
-		// 			"price": 150,
-		// 			"amount": 50
-		// 		});
-		// 	}
-		// }
-
 		Meteor.methods({
-			findUserGroup: function (userId, gameCode) {
-				group = "none";
-				if (RunningGames.findOne({$and: [{"gameCode": gameCode}, {"player": userId}]}) != undefined){
-					group = RunningGames.findOne({$and: [{"gameCode": gameCode}, {"player": userId}]}).group;
+			
+			raiseAlert: function (person, alert, gCode) {
+				if (alert == "clearall") {
+					Alerts.update({$and: [{"gameCode": gCode}, {"user": person}, {"type": "alert"}]}, {$set: {"contents.read": 1}}, {multi: true});
 				}
-				return group;
+				else {
+					Alerts.insert({"gameCode": gCode, "user": person, "type": "alert", "contents": {"text": alert, "read": 0}});
+				}
+				// console.log(d3.random.normal(1,10));
 			},
 
 			reqTrade : function (gCode, recipient, requester, giveRes, giveAmt, takeRes, takeAmt) {
@@ -54,47 +73,17 @@ if (Meteor.isServer) {
 					{replied: }					replied
 				]
 				*/
-				// reqs = Meteor.users.findOne({_id: recipient}).profile.requests;
 				reqLog = {"gameCode": gCode, "user": recipient, "requestedGroup": Meteor.call('findUserGroup', recipient, gCode) , "type": "request",  "contents": {"requester": {"id": requester, "username": Meteor.users.findOne({_id:requester}).username, "group": Meteor.call('findUserGroup', requester, gCode)}, "reqRes": takeRes, "reqAmt": parseInt(takeAmt), "recvRes": giveRes, "recvAmt": parseInt(giveAmt), "read": 0}};
 				Alerts.insert(reqLog);
 				console.log(reqLog);
 				return reqLog;
-				// reqs.push({"requester": Meteor.userId(), "reqRes": takeRes, "reqAmt": parseInt(takeAmt), "recvRes": giveRes, "recvAmt": parseInt(giveAmt), "reqNo": reqs.length, "replied": false});
-				// Meteor.users.update({_id: recipient}, { $set: {"profile.requests": reqs} });
-				// Meteor.users.findOne({_id: recipient}).profile.requests.push({"requester": Meteor.userId(), "reqRes": takeRes, "reqAmt": takeAmt, "recvRes": giveRes, "recvAmt": giveAmt});
-			},
-
-			raiseAlert: function (person, alert, gCode) {
-				if (alert == "clearall") {
-					Alerts.update({$and: [{"gameCode": gCode}, {"user": person}, {"type": "alert"}]}, {$set: {"contents.read": 1}}, {multi: true});
-				}
-				else {
-					Alerts.insert({"gameCode": gCode, "user": person, "type": "alert", "contents": {"text": alert, "read": 0}});
-				}
 			},
 
 			exchangeResources: function (reqId, gCode){
-				// givingGrp = Meteor.users.findOne({"_id": request["requester"]}, {"profile": 1})
-				// reqingGrp = "none";
-				// recvGrp = "none";
-				// Meteor.call('findUserGroup', Alerts.find({_id: reqId}).contents.requester.id, gCode, function (err, result){
-				// 	if (err){reqingGrp = "none";}
-				// 	else {
-				// 		reqingGrp = result;
-				// 	}
-				// });
-				// Meteor.call('findUserGroup', Meteor.userId(), gCode, function (err, result){
-				// 	if (err){recvGrp = "none";}
-				// 	else {recvGrp = result;}
-				// });
-
-				// reqingGrp = Meteor.users.findOne({"_id": request["requester"]}, {"profile": 1}).profile["groupID"];
-				// recvGrp = Meteor.user().profile.groupID;
 				recvGrp = Alerts.findOne({_id: reqId}).requestedGroup;
 				request = Alerts.findOne({_id: reqId}).contents;
 				reqingGrp = request.requester.group;
-				// console.log(givingGrp, reqingGrp);
-
+	
 				finalRequesterRequestedStock = parseInt(AllStocks.findOne({$and: [{"gameCode": gCode}, {"gID": reqingGrp}, {"item": request["recvRes"]}]}).amount) - parseInt(request["recvAmt"]);
 				finalReceiverRequestedStock = parseInt(AllStocks.findOne({$and: [{"gameCode": gCode}, {"gID": recvGrp}, {"item": request["recvRes"]}]}).amount) + parseInt(request["recvAmt"]);
 				
@@ -105,11 +94,6 @@ if (Meteor.isServer) {
 				AllStocks.update({$and: [{"gameCode": gCode}, {"gID": recvGrp}, {"item": request["reqRes"]}]}, {$set: {"amount": finalReceiverRequestedStock}});
 				AllStocks.update({$and: [{"gameCode": gCode}, {"gID": reqingGrp}, {"item": request["recvRes"]}]}, {$set: {"amount": finalRequesterReceivedStock}});
 				AllStocks.update({$and: [{"gameCode": gCode}, {"gID": reqingGrp}, {"item": request["reqRes"]}]}, {$set: {"amount": finalRequesterRequestedStock}});
-
-				// AllStocks.find({$and: [{"gameCode": gCode}, {"gID": recvGrp}, {"item": request["recvRes"]}]}).fetch();
-				// AllStocks.find({$and: [{"gameCode": gCode}, {"gID": recvGrp}, {"item": request["reqRes"]}]}).fetch();
-				// AllStocks.find({$and: [{"gameCode": gCode}, {"gID": reqingGrp}, {"item": request["recvRes"]}]}).fetch();
-				// AllStocks.find({$and: [{"gameCode": gCode}, {"gID": reqingGrp}, {"item": request["reqRes"]}]}).fetch();
 
 				Meteor.call('readRequest', reqId);
 			},
@@ -126,7 +110,8 @@ if (Meteor.isServer) {
 						"gameCode": codeString,
 						"player": adminID,
 						"playerName": Meteor.users.findOne({"_id": adminID}).username,
-						"group": "admin"
+						"group": "admin",
+						"lastLogin": date.getTime()
 					});
 					Meteor.call("setupNewGameStocks", codeString);
 				}
@@ -154,69 +139,74 @@ if (Meteor.isServer) {
 			},
 
 			joinGame: function (gameCode, joinerID) {
-				// game = RunningGames.findOne({"gameCode": gameCode});
-				// console.log(RunningGames.findOne({"gameCode": gameCode}));
 				gameCode = parseInt(gameCode);
 				if (RunningGames.findOne({"gameCode": gameCode}) == undefined) {
 					console.log("undefined "+gameCode);
 					return "Invalid game code";
 				}
 				else{
-					// if (RunningGames.findOne({$and: [{"gameCode": gameCode}, {"users.id": joinerID}]}) == undefined && RunningGames.findOne({$and: [{"gameCode": gameCode}, {"admin": joinerID}]}) == undefined){
-					// 	console.log("going to add this user");
-					// 	RunningGames.update({"gameCode": gameCode}, {$addToSet: {"users": {"id": joinerID, "group": groupIDs[Math.floor(Math.random() * 4)]}}});
-					// }
 					game = RunningGames.findOne({$and: [{"gameCode": gameCode}, {"player": joinerID}]});
 					grp = "home";
-					// role = "userDash";
 					if (game == undefined){
 						grp = groupIDs[Math.floor(Math.random() * 4)];
 						RunningGames.insert({
 							"gameCode": gameCode,
 							"player": joinerID,
 							"playerName": Meteor.users.findOne({"_id": joinerID}).username,
-							"group": grp
+							"group": grp,
+							"lastLogin": date.getTime()
 						});
 					}
 					else {
 						grpNo = game.group;
-						// if (grpNo == "admin"){
-						// 	role = "adminDash";
-						// }
+						Meteor.call('updateGameJoin', gameCode, joinerID);
+						return "Game joined";
 					}
-					// Session.set("GameCode", gameCode);
-					// Session.set("GroupNo", grpNo);
-					// Session.set("Role", role);
-
-					return "Game joined";
-					//*** redirect to url of game
 				}
+			},
+
+			updateGameJoin: function (gameCode, player) {
+				RunningGames.update({$and: [{"gameCode": gameCode}, {"player": player}]}, {$set: {"lastLogin": date.getTime()}});
+			},
+
+			updateStocks: function (gameCode) {
+				newPrice = gaussian(0, 20);
+				console.log(gameCode);
+				for (g in groupIDs){
+					for (r in resources){
+						stock = AllStocks.findOne({$and: [{"gameCode": gameCode}, {"gID": groupIDs[g]}, {"item": resources[r]}]});
+						// console.log(g, r, gameCode, stock);
+						if (stock != undefined){
+							currentPrice = stock.price * 0.8;
+							// console.log(currentPrice + 0.2 * newPrice());
+							AllStocks.update({$and: [{"gameCode": gameCode}, {"gID": groupIDs[g]}, {"item": resources[r]}]}, {$set: {"price": Math.round((currentPrice + 0.2 * newPrice()), -1)}});
+						}
+					}
+				}
+			},
+
+			checkLogins: function () {
+				currentTime = date.getTime();
+				// console.log("check");
+				recentGames = RunningGames.find({lastLogin: {$gt: (currentTime - 1800000)}}).fetch();
+				if (recentGames.length > 0){
+					recentGameCodes = recentGames.map(function(game) {
+						return game.gameCode;
+					});
+					recentGameCodes = recentGameCodes.filter( function(item, i, ar){ 
+						return ar.indexOf(item) === i; 
+					});
+					recentGameCodes.forEach(function(gCode) {
+						Meteor.call('updateStocks', gCode);
+					});
+				}
+				return true;
 			}
 
 		});
-		
 	});
+	Meteor.setInterval(function () {
+		Meteor.call('checkLogins');
+	}, 120000);
 
-	// Accounts.ui.config
-
-	// Accounts.onCreateUser(function(options, user) {
-	// 	user.groupID = groupIDs[Math.floor(Math.random() * 4)];
-	// 	// We still want the default hook's 'profile' behavior.
-	// 	// console.log("User: ", user);
-	// 	if (options.profile == undefined) {
-	// 		options.profile = {"groupID": user.groupID, "requests": [], "alerts": []};
-	// 	}
-	// 	else{
-	// 		options.profile["groupID"] = user.groupID;
-	// 		options.profile["requests"] = [];
-	// 		options.profile["alerts"] = [];
-	// 	}
-	// 	// console.log("Options: ", options);
-	// 	if (options.profile){
-	// 		// console.log(user.groupID);
-	// 		user.profile = options.profile;
-	// 	}
-	// 	// 	console.log(user.groupID);
-	// 	return user;
-	// });
 }
