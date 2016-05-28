@@ -15,7 +15,8 @@ Router.route('/games/:gameCode', function () {
 			Session.set("GroupNo", group);
 			Session.set("Role", role);
 		}
-		var gameCode = parseInt(this.params.gameCode);
+		// var gameCode = parseInt(this.params.gameCode);
+		var gameCode = this.params.gameCode;
 		role = "none";
 		group = "none";
 		game = RunningGames.findOne({$and: [{"gameCode": gameCode}, {"player": Meteor.userId()}] });

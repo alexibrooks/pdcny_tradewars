@@ -102,9 +102,12 @@ if (Meteor.isServer) {
 				Alerts.update({_id: reqId}, {$set: {"contents.read": 1}});
 			},
 
-			makeNewGame: function (adminID, codeString = 1730) {
+			makeNewGame: function (adminID, codeString = "1730") {
 				//*** generate random 4 character string
-				codeString = 1730;
+				while (RunningGames.findOne({"gameCode": codeString}) != undefined){
+					codeString = Math.random().toString(36).substring(2,8);
+				}
+				// codeString = "1730";
 				if (RunningGames.findOne({"gameCode": codeString}) == undefined){
 					RunningGames.insert({
 						"gameCode": codeString,
@@ -115,9 +118,9 @@ if (Meteor.isServer) {
 					});
 					Meteor.call("setupNewGameStocks", codeString);
 				}
-				else {
-					//*** if this game already exists, generate a new codestring and try again
-				}
+				// else {
+				// 	//*** if this game already exists, generate a new codestring and try again
+				// }
 				return codeString;
 			},
 
@@ -138,8 +141,9 @@ if (Meteor.isServer) {
 
 			},
 
-			joinGame: function (gameCode, joinerID) {
-				gameCode = parseInt(gameCode);
+			joinGame: function (gCode, joinerID) {
+				// gameCode = parseInt(gameCode);
+				gameCode = gCode;
 				if (RunningGames.findOne({"gameCode": gameCode}) == undefined) {
 					console.log("undefined "+gameCode);
 					return "Invalid game code";

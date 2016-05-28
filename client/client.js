@@ -9,6 +9,12 @@
 
 if (Meteor.isClient) {
 	// Template.registerForm.event
+	Template.body.helpers ({
+		username: function () {
+			return Meteor.user().username;
+		}
+	});
+
 	Template.body.events ({
 		'click .logOut': function () {
 			// console.log("logging out?");
