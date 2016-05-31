@@ -73,9 +73,26 @@ if (Meteor.isServer) {
 					{replied: }					replied
 				]
 				*/
-				reqLog = {"gameCode": gCode, "user": recipient, "requestedGroup": Meteor.call('findUserGroup', recipient, gCode) , "type": "request",  "contents": {"requester": {"id": requester, "username": Meteor.users.findOne({_id:requester}).username, "group": Meteor.call('findUserGroup', requester, gCode)}, "reqRes": takeRes, "reqAmt": parseInt(takeAmt), "recvRes": giveRes, "recvAmt": parseInt(giveAmt), "read": 0}};
+				reqLog = {
+					"gameCode": gCode, 
+					"user": recipient, 
+					"requestedGroup": RunningGames.findOne({$and: [{"gameCode": gCode}, {"player": recipient}]}).group,
+					"type": "request",  
+					"contents": {
+						"requester": {
+							"id": requester, 
+							"username": Meteor.users.findOne({_id:requester}).username, 
+							"group": RunningGames.findOne({$and: [{"gameCode": gCode}, {"player": requester}]}).group
+						},
+						"reqRes": takeRes, 
+						"reqAmt": parseInt(takeAmt), 
+						"recvRes": giveRes, 
+						"recvAmt": parseInt(giveAmt), 
+						"read": 0
+					}
+				};
 				Alerts.insert(reqLog);
-				console.log(reqLog);
+				// console.log(reqLog);
 				return reqLog;
 			},
 
@@ -83,18 +100,29 @@ if (Meteor.isServer) {
 				recvGrp = Alerts.findOne({_id: reqId}).requestedGroup;
 				request = Alerts.findOne({_id: reqId}).contents;
 				reqingGrp = request.requester.group;
-	
-				finalRequesterRequestedStock = parseInt(AllStocks.findOne({$and: [{"gameCode": gCode}, {"gID": reqingGrp}, {"item": request["recvRes"]}]}).amount) - parseInt(request["recvAmt"]);
-				finalReceiverRequestedStock = parseInt(AllStocks.findOne({$and: [{"gameCode": gCode}, {"gID": recvGrp}, {"item": request["recvRes"]}]}).amount) + parseInt(request["recvAmt"]);
+
+				//recvGrp is the one that received the request
+				//reqingGrp is the one that sent the request
+				//reqRes is the resource that the requester is requesting
+				//recvRes is the resource that the requester is giving (received by request recipient)
+				finalRequesterRequestedStock = parseInt(
+					AllStocks.findOne(
+						{$and: [
+							{"gameCode": gCode}, 
+							{"gID": reqingGrp}, 
+							{"item": request["recvRes"]}]
+						}).amount) - parseInt(request["recvAmt"]);
+				AllStocks.update({$and: [{"gameCode": gCode}, {"gID": reqingGrp}, {"item": request["recvRes"]}]}, {$set: {"amount": finalRequesterRequestedStock}});	
 				
 				finalRequesterReceivedStock = parseInt(AllStocks.findOne({$and: [{"gameCode": gCode}, {"gID": reqingGrp}, {"item": request["reqRes"]}]}).amount) + parseInt(request["reqAmt"]);
+				AllStocks.update({$and: [{"gameCode": gCode}, {"gID": reqingGrp}, {"item": request["reqRes"]}]}, {$set: {"amount": finalRequesterReceivedStock}});
+				
+				finalReceiverRequestedStock = parseInt(AllStocks.findOne({$and: [{"gameCode": gCode}, {"gID": recvGrp}, {"item": request["recvRes"]}]}).amount) + parseInt(request["recvAmt"]);
+				AllStocks.update({$and: [{"gameCode": gCode}, {"gID": recvGrp}, {"item": request["recvRes"]}]}, {$set: {"amount": finalReceiverRequestedStock}});
+
 				finalReceiverReceivedStock = parseInt(AllStocks.findOne({$and: [{"gameCode": gCode}, {"gID": recvGrp}, {"item": request["reqRes"]}]}).amount) - parseInt(request["reqAmt"]);
-
-				AllStocks.update({$and: [{"gameCode": gCode}, {"gID": recvGrp}, {"item": request["recvRes"]}]}, {$set: {"amount": finalReceiverReceivedStock}});
-				AllStocks.update({$and: [{"gameCode": gCode}, {"gID": recvGrp}, {"item": request["reqRes"]}]}, {$set: {"amount": finalReceiverRequestedStock}});
-				AllStocks.update({$and: [{"gameCode": gCode}, {"gID": reqingGrp}, {"item": request["recvRes"]}]}, {$set: {"amount": finalRequesterReceivedStock}});
-				AllStocks.update({$and: [{"gameCode": gCode}, {"gID": reqingGrp}, {"item": request["reqRes"]}]}, {$set: {"amount": finalRequesterRequestedStock}});
-
+				AllStocks.update({$and: [{"gameCode": gCode}, {"gID": recvGrp}, {"item": request["reqRes"]}]}, {$set: {"amount": finalReceiverReceivedStock}});
+				
 				Meteor.call('readRequest', reqId);
 			},
 

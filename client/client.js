@@ -70,8 +70,15 @@ if (Meteor.isClient) {
 					acceptance = false;
 				}
 				else{
-					Meteor.call('exchangeResources', reqId, Session.get("GameCode"));
-					Meteor.call('raiseAlert', Meteor.userId(), "Request completed, you have the things you requested for!", Session.get("GameCode"));
+					Meteor.call('exchangeResources', reqId, Session.get("GameCode"), function(err, result){
+						if(err){
+							Meteor.call('raiseAlert', Meteor.userId(), "The server's dying man. Sorry", Session.get("GameCode"));
+						}
+						else {
+							Meteor.call('raiseAlert', Meteor.userId(), "Request completed, you have the things you were offered!", Session.get("GameCode"));
+						}
+					});
+					
 					acceptance = true;
 				}
 			}
@@ -95,7 +102,7 @@ if (Meteor.isClient) {
 	Template.stockInfo.helpers ({
 		resources: function () {
 			// return AllStocks.findOne({gID: groupID}).market;
-			console.log("stockin");
+			// console.log("stockin");
 			if (Session.get("GroupNo") == "admin"){
 				return AllStocks.find({gameCode: Session.get("GameCode")});	
 			}
@@ -122,7 +129,7 @@ if (Meteor.isClient) {
 
 	Template.trade.helpers({
 		otherUsers: function () {
-			return RunningGames.find({$and: [{gameCode: Session.get("GameCode")}, {player: {$ne: Meteor.userId()}}, {group: {$ne: "admin"}}]}, {playerName: 1});
+			return RunningGames.find({$and: [{gameCode: Session.get("GameCode")}, {player: {$ne: Meteor.userId()}}, {group: {$ne: "admin"}}]});
 
 		},
 
@@ -148,17 +155,18 @@ if (Meteor.isClient) {
 				a = parseInt(AllStocks.find({$and: [{"gameCode": Session.get("GameCode")}, {"gID": Session.get("GroupNo")}, {"item": res}, {"amount": {$gte: parseInt(amt)}}]}).fetch().length);
 				// console.log(a != 0);
 				if (a > 0){
-					console.log("tru");
+					// console.log("tru");
 					return true;
 				}
 				else {
-					console.log("fal");
+					// console.log("fal");
 					return false;
 				}
 			}
 
 			if (checkAvailability(event.target.GivingResource.value, event.target.giveAmount.value)){
 				// console.log(event.target.Recipient.value, Meteor.userId(), event.target.GivingResource.value, event.target.giveAmount.value, event.target.TakingResource.value, event.target.requestAmount.value);
+				// console.log(event.target.Recipient.value);
 				Meteor.call('reqTrade', Session.get("GameCode"), event.target.Recipient.value, Meteor.userId(), event.target.GivingResource.value, event.target.giveAmount.value, event.target.TakingResource.value, event.target.requestAmount.value, function (error, result){
 					if (error){
 						Meteor.call('raiseAlert', Meteor.userId(), "Request sending failed due to server's fault. Find the owners of the internets and shout at them.", Session.get("GameCode"));
@@ -208,7 +216,7 @@ if (Meteor.isClient) {
 					alert("Errorr");
 				}
 				else {
-					console.log(result);
+					// console.log(result);
 					if (result == "Invalid game code"){
 						alert("That game does not exist");
 					}
