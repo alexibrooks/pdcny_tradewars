@@ -3,10 +3,10 @@
 // Alerts = new Mongo.Collection("alerts")
 // Events = new Mongo.Collection("eventlogs")
 
-import './d3-random.min.js'
+// import './d3-random.min.js'
 
-resources = ["a", "b", "c", "d"]
-groupIDs = ["g1", "g2", "g3", "g4"];
+resources = ["gold", "wood", "food", "stone"]
+groupIDs = ["red_group", "green_group", "pink_group", "blue_group"];
 
 gaussian = function(mean, stdev) {
     var y2;
@@ -202,7 +202,7 @@ if (Meteor.isServer) {
 			},
 
 			updateStocks: function (gameCode) {
-				newPrice = gaussian(0, 20);
+				newPrice = gaussian(150, 50);
 				console.log(gameCode);
 				for (g in groupIDs){
 					for (r in resources){

@@ -109,6 +109,17 @@ if (Meteor.isClient) {
 			else if (Session.get("GroupNo") != "none"){
 				return AllStocks.find({$and: [{gID: Session.get("GroupNo")}, {gameCode: Session.get("GameCode")}]});
 			}
+		},
+
+		totalValue: function () {
+			// mapfn = function () {emit(this.gID, (this.amount * this.price))}
+			// reducefn = function (gID, vals) {return Array.sum(vals)};
+			// AllStocks.mapReduce(mapfn, reducefn, {out: "mapeg", query: {$and: [{gameCode: "1730"}, {gID: "g4"}]}});
+			// return mapeg.findOne.value;
+			// AllStocks.find()
+			c = 0;
+			AllStocks.find({$and: [{gameCode: Session.get("GameCode")}, {gID: Session.get("GroupNo")}]}).map(function (u) {c += (u.price * u.amount)});
+			return c;
 		}
 
 	});
@@ -129,7 +140,7 @@ if (Meteor.isClient) {
 
 	Template.trade.helpers({
 		otherUsers: function () {
-			return RunningGames.find({$and: [{gameCode: Session.get("GameCode")}, {player: {$ne: Meteor.userId()}}, {group: {$ne: "admin"}}]});
+			return RunningGames.find({$and: [{gameCode: Session.get("GameCode")}, {player: {$ne: Meteor.userId()}}, {group: {$nin: ["admin", Session.get("GroupNo")]}}]});
 
 		},
 

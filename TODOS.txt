@@ -1,5 +1,37 @@
-TODOS:
+0. admin kick all
 
+---- 1. fix other traders
+---- 2. total team profit
+3. max trade size - 10
+	
+4. Bag functionality – 
+	Limited bag size + download speed/rate
+	Pick up from home base into bag, home base approval
+
+5. history graph of prices
+
+6. Market contingent on local stock/demand
+
+7. Events
+
+8. (Wonders) Building chairs
+
+9. Invest resources to make better bags, or such
+
+
+
+1. Change prices/value of resources depending on physical location of each of the players
+2. Limit how much individual players can trade, because an individual trader can only carry so much
+	Max trade size
+3. Individual users carry things: they go to the home base, pick up stuff, and an only trade that out. Need to go back to home base to pick up and drop off things.
+
+4. Try having achieve goals (people join in for a short time, and try getting some goals)
+5. A visible timer for the runout
+6. 
+
+
+TODOS:
+	
 	make secure
 
 	add event logging
