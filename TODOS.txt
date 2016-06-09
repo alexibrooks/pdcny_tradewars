@@ -1,7 +1,8 @@
-0. admin kick all
+---- 0. admin kick all
 
 ---- 1. fix other traders
 ---- 2. total team profit
+
 3. max trade size - 10
 	
 4. Bag functionality – 

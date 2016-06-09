@@ -48,6 +48,14 @@
 </template>
 
 <template name = "adminDash">
+	<h4> Kick users!!1! </h4>
+	{{> userKicks}}
+	<br />
+
+	<h4> Edit Stocks </h4>
+	{{> stockEditor}}
+	<br />
+	
 	{{#if currentUser}}
 		{{>alertsTemp}}  
 		{{>requestsTemp}}
@@ -59,6 +67,35 @@
 	{{/if}}
 </template>
 
+<template name = "userKicks">
+	<form class = "kickPlayer">
+		Players in this game:
+		<select name = "player">
+				<option value="None">  </option> 
+			{{#each allUsers}}
+				<option value="{{player}}">{{playerName}}</option> 
+			{{/each}}
+		</select>
+		<br />
+		<input type = "submit" value ="Kick" />
+	</form>
+	<br />
+	<button class="kickAll">Kick everybody!</button>
+	<br />
+	<button class="killGame">Delete game</button>
+</template>
+
+<template name = "stockEditor">
+	<form class = "stockChange">
+		Stock:
+		<select name = "stock">
+			{{#each groupStocks}}
+				<option value="{{_id}}">{{gID}}: {{item}} – {{amount}} : {{price}}</option> 
+			{{/each}}
+		</select><br />
+		<input type = "submit" />
+	</form>
+</template>
 
 <template name = "alertsTemp">
 	<a href = "/" class="btn btn-default pull-right">See other games</a>

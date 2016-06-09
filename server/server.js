@@ -233,6 +233,29 @@ if (Meteor.isServer) {
 					});
 				}
 				return true;
+			},
+
+			kickPlayer: function (gCode, playerId = "all", negative = false) {
+				if (playerId != "all"){
+					if (negative == false){
+						if (RunningGames.findOne({$and: [{gameCode: gCode}, {player: playerId}]}) != undefined){
+							RunningGames.remove({$and: [{gameCode: gCode}, {player: playerId}]}, {justOne: false})
+							return true;
+						}
+						else {
+							return false;
+						}
+					}
+					else {
+						RunningGames.remove({$and: [{gameCode: gCode}, {player: {$ne: playerId}}]}, {justOne: false});
+						return true;
+					}
+				}
+				else {
+					RunningGames.remove({$and: [{gameCode: gCode}]}, {justOne: false});
+					AllStocks.remove({$and: [{gameCode: gCode}]}, {justOne: false});
+					return false;
+				}
 			}
 
 		});
