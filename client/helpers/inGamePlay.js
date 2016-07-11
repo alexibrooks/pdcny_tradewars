@@ -6,7 +6,7 @@ Template.stockInfo.helpers ({
 			return AllStocks.find({gameCode: Session.get("GameCode")});	
 		}
 		else if (Session.get("GroupNo") != "none"){
-			return AllStocks.find({$and: [{gID: Session.get("GroupNo")}, {gameCode: Session.get("GameCode")}]});
+			return AllStocks.find({$and: [{stockType: "group"}, {gID: Session.get("GroupNo")}, {gameCode: Session.get("GameCode")}]});
 		}
 	},
 
@@ -23,10 +23,25 @@ Template.stockInfo.helpers ({
 
 });
 
+Template.bagInfo.helpers ({
+        resources: function () {
+                if (Session.get("GroupNo") == "admin"){}
+                else if (Session.get("GroupNo") != "none"){
+                        return AllStocks.find({$and: [{gameCode: Session.get("GameCode")}, {pID: Meteor.userId()}]});
+                }
+        }
+});
+
 
 Template.trade.helpers({
 	otherUsers: function () {
-		return RunningGames.find({$and: [{gameCode: Session.get("GameCode")}, {player: {$ne: Meteor.userId()}}, {group: {$nin: ["admin", Session.get("GroupNo")]}}]});
+		return RunningGames.find({$or: [{$and: [{gameCode: Session.get("GameCode")},
+                                                       {playerType: "base"},
+                                                       {group: Session.get("GroupNo")}]}, 
+                                         {$and: [{gameCode: Session.get("GameCode")},
+                                                 {playerType: "player"},
+                                                 {player: {$ne: Meteor.userId()}},
+                                                 {group: {$nin: ["admin", Session.get("GroupNo")]}}]}]});
 
 	},
 

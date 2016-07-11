@@ -154,12 +154,21 @@ if (Meteor.isServer) {
 
 			setupNewGameStocks: function (code) {
 				for (g in groupIDs){
+                                        RunningGames.insert({ //Create the base
+                                                "gameCode": code,
+                                                //"player": TODO, It seems maybe ok to have this blank for bases
+                                                "playerName": g + "_Base",
+                                                "group": g,
+                                                "playerType": "base"
+                                        });
 					// print("adding for ", groupIDs[g]);
 					for (r in resources){
 						// print("adding ", resources[r]);
 						AllStocks.insert({
 							"gameCode": code,
 							"gID": groupIDs[g],
+                                                        "stockType": "group",
+                                                        //"pID": groupIDs[g], //TODO Is this ok to use here?
 							"item": resources[r],
 							"price": 150,
 							"amount": 50
@@ -186,8 +195,19 @@ if (Meteor.isServer) {
 							"player": joinerID,
 							"playerName": Meteor.users.findOne({"_id": joinerID}).username,
 							"group": grp,
-							"lastLogin": date.getTime()
-						});
+							"lastLogin": date.getTime(),
+                                                        "playerType": "player"
+						}); 
+                                                for (r in resources){
+                                                        AllStocks.insert({
+                                                                "gameCode": code,
+                                                                "gID": grp,
+                                                                "stockType": "player",
+                                                                "pID": joinerID,
+                                                                "item": resources[r],
+                                                                "amount": 0
+                                                        });
+                                                }
 					}
 					else {
 						grpNo = game.group;
@@ -206,12 +226,12 @@ if (Meteor.isServer) {
 				console.log(gameCode);
 				for (g in groupIDs){
 					for (r in resources){
-						stock = AllStocks.findOne({$and: [{"gameCode": gameCode}, {"gID": groupIDs[g]}, {"item": resources[r]}]});
+						stock = AllStocks.findOne({$and: [{"gameCode": gameCode}, {"gID": groupIDs[g]}, {"stockType": "group"}, {"item": resources[r]}]});
 						// console.log(g, r, gameCode, stock);
 						if (stock != undefined){
 							currentPrice = stock.price * 0.8;
 							// console.log(currentPrice + 0.2 * newPrice());
-							AllStocks.update({$and: [{"gameCode": gameCode}, {"gID": groupIDs[g]}, {"item": resources[r]}]}, {$set: {"price": Math.round((currentPrice + 0.2 * newPrice()), -1)}});
+							AllStocks.update({$and: [{"gameCode": gameCode}, {"gID": groupIDs[g]}, {"stockType": "group"}, {"item": resources[r]}]}, {$set: {"price": Math.round((currentPrice + 0.2 * newPrice()), -1)}});
 						}
 					}
 				}
